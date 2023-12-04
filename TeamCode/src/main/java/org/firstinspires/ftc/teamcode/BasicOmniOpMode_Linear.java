@@ -79,14 +79,17 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
     public Servo leftClaw = null;
     public Servo rightClaw = null;
 
-    double clawOffset = 0;
+    double leftClawOffset = 0;
+    double rightClawOffset = 0;
 
     public static final double MAIN_ARM_UP_POWER    =  0.45 ;
     public static final double MAIN_ARM_DOWN_POWER  = -0.35 ;
     public static final double OTHER_ARM_UP_POWER    =  0.15 ;
     public static final double OTHER_ARM_DOWN_POWER  = -0.45 ;
     public static final double MID_SERVO   =  0.5 ;
-    public static final double CLAW_SPEED  = 0.005 ;
+    public static final double CLAW_SPEED  = 0.002 ;
+    public static final double SPEED_SCALE  = 0.8;
+    public static final double BACK_MOTOR_OFFSET = .3;
 
     @Override
     public void runOpMode() {
@@ -142,8 +145,10 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
             // Set up a variable for each drive wheel to save the power level for telemetry.
             double leftFrontPower  = axial + lateral + yaw;
             double rightFrontPower = axial - lateral - yaw;
-            double leftBackPower   = axial - lateral + yaw;
+            double leftBackPower   = axial - lateral + yaw ;
             double rightBackPower  = axial + lateral - yaw;
+
+
 
             // Normalize the values so no wheel power exceeds 100%
             // This ensures that the robot maintains the desired motion.
@@ -156,6 +161,21 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
                 rightFrontPower /= max;
                 leftBackPower   /= max;
                 rightBackPower  /= max;
+            }
+
+            // reduce speed because our robot is too dang fast
+            leftFrontPower *= SPEED_SCALE;
+            rightFrontPower *= SPEED_SCALE;
+            leftBackPower *= SPEED_SCALE;
+            rightBackPower *= SPEED_SCALE;
+
+            // the robot is heavier in the back so we need to offset the power to make up for it
+            if(leftFrontPower < (0 - BACK_MOTOR_OFFSET)) {
+                leftFrontPower += BACK_MOTOR_OFFSET;
+                rightFrontPower -= BACK_MOTOR_OFFSET;
+            } else if(leftFrontPower > (0 + BACK_MOTOR_OFFSET)) {
+                leftFrontPower -= BACK_MOTOR_OFFSET;
+                rightFrontPower += BACK_MOTOR_OFFSET;
             }
 
             // This is test code:
@@ -175,6 +195,31 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
             rightBackPower  = gamepad1.b ? 1.0 : 0.0;  // B gamepad
             */
 
+            // use dpad for constant reliable movements
+            if(gamepad1.dpad_up) {
+                leftFrontPower = 1.0 * SPEED_SCALE;
+                rightFrontPower = 1.0 * SPEED_SCALE;
+                leftBackPower = 1.0 * SPEED_SCALE;
+                rightBackPower = 1.0 * SPEED_SCALE;
+            }
+            else if(gamepad1.dpad_down) {
+                leftFrontPower = -1.0 * SPEED_SCALE;
+                rightFrontPower = -1.0 * SPEED_SCALE;
+                leftBackPower = -1.0 * SPEED_SCALE;
+                rightBackPower = -1.0 * SPEED_SCALE;
+            }
+            else if(gamepad1.dpad_right) {
+                leftFrontPower = -1.0 * SPEED_SCALE;
+                rightFrontPower = 1.0 * SPEED_SCALE;
+                leftBackPower = -.9 * SPEED_SCALE;
+                rightBackPower = .9 * SPEED_SCALE;
+            }
+            else if(gamepad1.dpad_left) {
+                leftFrontPower = -1.0 * SPEED_SCALE;
+                rightFrontPower = -1.0 * SPEED_SCALE;
+                leftBackPower = .9 * SPEED_SCALE;
+                rightBackPower = .9 * SPEED_SCALE;
+            }
             // Send calculated power to wheels
             leftFrontDrive.setPower(leftFrontPower);
             rightFrontDrive.setPower(rightFrontPower);
@@ -182,15 +227,28 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
             rightBackDrive.setPower(rightBackPower);
 
             // Use gamepad left & right Bumpers to open and close the claw
-            if (gamepad2.right_bumper)
-                clawOffset += CLAW_SPEED;
-            else if (gamepad2.left_bumper)
-                clawOffset -= CLAW_SPEED;
+            // Control for the left claw
+            if (gamepad2.left_bumper) {
+                leftClawOffset += CLAW_SPEED;
+            } else if (gamepad2.left_trigger > 0) {
+                leftClawOffset -= CLAW_SPEED;
+            }
 
-            // Move both servos to new position.  Assume servos are mirror image of each other.
-            clawOffset = Range.clip(clawOffset, 0, .68);
-            leftClaw.setPosition(clawOffset);
-            rightClaw.setPosition(clawOffset);
+            // Control for the right claw
+            if (gamepad2.right_bumper) {
+                rightClawOffset += CLAW_SPEED;
+            } else if (gamepad2.right_trigger > 0) {
+                rightClawOffset -= CLAW_SPEED;
+            }
+
+            // Ensure the claw positions remain within their physical limits
+            leftClawOffset = Range.clip(leftClawOffset, 0, 0.78);
+            rightClawOffset = Range.clip(rightClawOffset, 0, 0.78);
+
+            // Update servo positions
+            leftClaw.setPosition(leftClawOffset);
+            rightClaw.setPosition(rightClawOffset);
+
 
 
             if (gamepad2.a)
@@ -212,6 +270,7 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
             telemetry.addData("Front left/Right", "%4.2f, %4.2f", leftFrontPower, rightFrontPower);
             telemetry.addData("Back  left/Right", "%4.2f, %4.2f", leftBackPower, rightBackPower);
             telemetry.addData("Servo position left/Right", "%2.2f, %2.2f", leftClaw.getPosition(), rightClaw.getPosition());
+
             telemetry.update();
         }
     }}
