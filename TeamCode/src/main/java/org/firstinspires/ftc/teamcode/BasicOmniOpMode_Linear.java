@@ -211,14 +211,14 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
             else if(gamepad1.dpad_right) {
                 leftFrontPower = -1.0 * SPEED_SCALE;
                 rightFrontPower = 1.0 * SPEED_SCALE;
-                leftBackPower = -.9 * SPEED_SCALE;
-                rightBackPower = .9 * SPEED_SCALE;
+                leftBackPower = -.3 * SPEED_SCALE;
+                rightBackPower = .3 * SPEED_SCALE;
             }
             else if(gamepad1.dpad_left) {
-                leftFrontPower = -1.0 * SPEED_SCALE;
+                leftFrontPower = 1.0 * SPEED_SCALE;
                 rightFrontPower = -1.0 * SPEED_SCALE;
-                leftBackPower = .9 * SPEED_SCALE;
-                rightBackPower = .9 * SPEED_SCALE;
+                leftBackPower = .3 * SPEED_SCALE;
+                rightBackPower = -.3 * SPEED_SCALE;
             }
             // Send calculated power to wheels
             leftFrontDrive.setPower(leftFrontPower);
