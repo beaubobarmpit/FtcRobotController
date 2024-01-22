@@ -37,6 +37,8 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
+import org.checkerframework.checker.formatter.qual.FormatBottom;
+
 /*
  * This file contains an example of a Linear "OpMode".
  * An OpMode is a 'program' that runs in either the autonomous or the teleop period of an FTC match.
@@ -76,8 +78,11 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
     private DcMotor rightBackDrive = null;
     private DcMotor mainArm = null;
     private DcMotor otherArm = null;
+    private DcMotor hanger = null;
     public Servo leftClaw = null;
     public Servo rightClaw = null;
+    public Servo bandLauncher = null;
+    public Servo airplane = null;
 
     double leftClawOffset = 0;
     double rightClawOffset = 0;
@@ -86,9 +91,11 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
     public static final double MAIN_ARM_DOWN_POWER  = -0.35 ;
     public static final double OTHER_ARM_UP_POWER    =  0.15 ;
     public static final double OTHER_ARM_DOWN_POWER  = -0.45 ;
-    public static final double MID_SERVO   =  0.5 ;
+    public static final double HANGER_POWER =  0;
     public static final double CLAW_SPEED  = 0.002 ;
-    public static final double SPEED_SCALE  = 0.8;
+    public static final double FB_DPAD_SPEED_SCALE  = 0.2;
+    public static final double LR_DPAD_SPEED_SCALE  = 0.8;
+    public static final double STICK_SPEED_SCALE  = 0.5;
     public static final double BACK_MOTOR_OFFSET = .3;
 
     @Override
@@ -104,6 +111,10 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
         otherArm = hardwareMap.get(DcMotor.class, "other_arm"); // port 0
         leftClaw  = hardwareMap.get(Servo.class, "left_claw"); // port 4
         rightClaw = hardwareMap.get(Servo.class, "right_claw"); // port 5
+        bandLauncher = hardwareMap.get(Servo.class, "band_launcher"); // port 3
+        hanger = hardwareMap.get(DcMotor.class, "hanger"); // port 2
+        airplane  = hardwareMap.get(Servo.class, "airplane"); // port 5
+
 
         // change direction of claw
         leftClaw.setDirection(Servo.Direction.REVERSE);
@@ -147,7 +158,7 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
             double rightFrontPower = axial - lateral - yaw;
             double leftBackPower   = axial - lateral + yaw ;
             double rightBackPower  = axial + lateral - yaw;
-
+            double hangerPower = 0;
 
 
             // Normalize the values so no wheel power exceeds 100%
@@ -164,10 +175,10 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
             }
 
             // reduce speed because our robot is too dang fast
-            leftFrontPower *= SPEED_SCALE;
-            rightFrontPower *= SPEED_SCALE;
-            leftBackPower *= SPEED_SCALE;
-            rightBackPower *= SPEED_SCALE;
+            leftFrontPower *= STICK_SPEED_SCALE;
+            rightFrontPower *= STICK_SPEED_SCALE;
+            leftBackPower *= STICK_SPEED_SCALE;
+            rightBackPower *= STICK_SPEED_SCALE;
 
             // the robot is heavier in the back so we need to offset the power to make up for it
             if(leftFrontPower < (0 - BACK_MOTOR_OFFSET)) {
@@ -197,28 +208,28 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
 
             // use dpad for constant reliable movements
             if(gamepad1.dpad_up) {
-                leftFrontPower = 1.0 * SPEED_SCALE;
-                rightFrontPower = 1.0 * SPEED_SCALE;
-                leftBackPower = 1.0 * SPEED_SCALE;
-                rightBackPower = 1.0 * SPEED_SCALE;
+                leftFrontPower = 1.0 * FB_DPAD_SPEED_SCALE;
+                rightFrontPower = 1.0 * FB_DPAD_SPEED_SCALE;
+                leftBackPower = 1.0 * FB_DPAD_SPEED_SCALE;
+                rightBackPower = 1.0 * FB_DPAD_SPEED_SCALE;
             }
             else if(gamepad1.dpad_down) {
-                leftFrontPower = -1.0 * SPEED_SCALE;
-                rightFrontPower = -1.0 * SPEED_SCALE;
-                leftBackPower = -1.0 * SPEED_SCALE;
-                rightBackPower = -1.0 * SPEED_SCALE;
+                leftFrontPower = -1.0 * FB_DPAD_SPEED_SCALE;
+                rightFrontPower = -1.0 * FB_DPAD_SPEED_SCALE;
+                leftBackPower = -1.0 * FB_DPAD_SPEED_SCALE;
+                rightBackPower = -1.0 * FB_DPAD_SPEED_SCALE;
             }
             else if(gamepad1.dpad_right) {
-                leftFrontPower = -1.0 * SPEED_SCALE;
-                rightFrontPower = 1.0 * SPEED_SCALE;
-                leftBackPower = -.3 * SPEED_SCALE;
-                rightBackPower = .3 * SPEED_SCALE;
+                leftFrontPower = -1.0 * LR_DPAD_SPEED_SCALE;
+                rightFrontPower = 1.0 * LR_DPAD_SPEED_SCALE;
+                leftBackPower = -.3 * LR_DPAD_SPEED_SCALE;
+                rightBackPower = .3 * LR_DPAD_SPEED_SCALE;
             }
             else if(gamepad1.dpad_left) {
-                leftFrontPower = 1.0 * SPEED_SCALE;
-                rightFrontPower = -1.0 * SPEED_SCALE;
-                leftBackPower = .3 * SPEED_SCALE;
-                rightBackPower = -.3 * SPEED_SCALE;
+                leftFrontPower = 1.0 * LR_DPAD_SPEED_SCALE;
+                rightFrontPower = -1.0 * LR_DPAD_SPEED_SCALE;
+                leftBackPower = .3 * LR_DPAD_SPEED_SCALE;
+                rightBackPower = -.3 * LR_DPAD_SPEED_SCALE;
             }
             // Send calculated power to wheels
             leftFrontDrive.setPower(leftFrontPower);
@@ -226,14 +237,12 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
             leftBackDrive.setPower(leftBackPower);
             rightBackDrive.setPower(rightBackPower);
 
-            // Use gamepad left & right Bumpers to open and close the claw
-            // Control for the left claw
-            if (gamepad2.left_bumper) {
-                leftClawOffset += CLAW_SPEED;
-            } else if (gamepad2.left_trigger > 0) {
-                leftClawOffset -= CLAW_SPEED;
+            // Use gamepad1 bumper and trigger to move the hanger
+            if(gamepad1.right_bumper){
+                hangerPower = 1.0;
+            } else if (gamepad1.right_trigger > 0){
+                hangerPower = -gamepad1.right_trigger;
             }
-
             // Control for the right claw
             if (gamepad2.right_bumper) {
                 rightClawOffset += CLAW_SPEED;
@@ -244,26 +253,30 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
             // Ensure the claw positions remain within their physical limits
             leftClawOffset = Range.clip(leftClawOffset, 0, 0.78);
             rightClawOffset = Range.clip(rightClawOffset, 0, 0.78);
-
+            hanger.setPower(hangerPower);
             // Update servo positions
             leftClaw.setPosition(leftClawOffset);
             rightClaw.setPosition(rightClawOffset);
-
-
-
+            // Use gamepad2 b to launch drone and move arm
             if (gamepad2.a)
                 mainArm.setPower(MAIN_ARM_UP_POWER);
             else if (gamepad2.y)
                 mainArm.setPower(MAIN_ARM_DOWN_POWER);
             else
-                mainArm.setPower(-0.1);
+                mainArm.setPower(0);
 
             if (gamepad2.x)
                 otherArm.setPower(OTHER_ARM_UP_POWER);
             else if (gamepad2.b)
                 otherArm.setPower(OTHER_ARM_DOWN_POWER);
             else
-                otherArm.setPower(-0.1);
+                otherArm.setPower(-0.05);
+
+            if(gamepad2.dpad_up){
+                airplane.setPosition(1);
+            } else if(gamepad2.dpad_down) {
+                airplane.setPosition(-1);
+            }
 
             // Show the elapsed game time and wheel power.
             telemetry.addData("Status", "Run Time: " + runtime.toString());
