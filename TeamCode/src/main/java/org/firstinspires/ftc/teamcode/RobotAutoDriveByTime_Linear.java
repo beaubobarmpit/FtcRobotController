@@ -29,11 +29,13 @@
 
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.ftccommon.SoundPlayer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.TouchSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
@@ -65,12 +67,21 @@ public class RobotAutoDriveByTime_Linear extends LinearOpMode {
     private DcMotor rightFrontDrive = null;
     private DcMotor rightBackDrive = null;
     public Servo leftClaw = null;
-
-
+    private DcMotor hanger = null;
+    double hangerPower = .3;
     private ElapsedTime     runtime = new ElapsedTime();
-
+    private DcMotor mainArm = null;
+    TouchSensor touchSensor;
+    private DcMotor otherArm = null;
+    public Servo airplane = null;
+    private boolean beauscreamFound;
     @Override
     public void runOpMode() {
+        int beauscreamSoundID   = hardwareMap.appContext.getResources().getIdentifier("beauscream",   "raw", hardwareMap.appContext.getPackageName());
+        telemetry.addData("beauscream resource",   beauscreamFound ?   "Found" : "NOT found\n Add beauscream.wav to /src/main/res/raw" );
+
+        telemetry.addData("Playing", "Resource BeauScream");
+        telemetry.update();
 
         // Initialize the drive system variables.
         leftFrontDrive  = hardwareMap.get(DcMotor.class, "left_front_drive"); // port 3
@@ -78,7 +89,11 @@ public class RobotAutoDriveByTime_Linear extends LinearOpMode {
         rightFrontDrive = hardwareMap.get(DcMotor.class, "right_front_drive"); // port 1
         rightBackDrive = hardwareMap.get(DcMotor.class, "right_back_drive"); // port 0
         leftClaw  = hardwareMap.get(Servo.class, "right_claw"); // port 5 and its actually right claw
-
+        touchSensor = hardwareMap.get(TouchSensor.class, "sensor_touch"); // port 1 digital
+        hanger = hardwareMap.get(DcMotor.class, "hanger"); // port 2
+        mainArm = hardwareMap.get(DcMotor.class, "main_arm"); // port 1
+        otherArm = hardwareMap.get(DcMotor.class, "other_arm"); // port 0
+        airplane  = hardwareMap.get(Servo.class, "airplane"); // port 5
         // To drive forward, most robots need the motor on one side to be reversed, because the axles point in opposite directions.
         // When run, this OpMode should start both motors driving forward. So adjust these two lines based on your first test drive.
         // Note: The settings here assume direct drive on left and right wheels.  Gear Reduction or 90 Deg drives may require direction flips
@@ -93,30 +108,71 @@ public class RobotAutoDriveByTime_Linear extends LinearOpMode {
 
         // Wait for the game to start (driver presses PLAY)
         waitForStart();
+        SoundPlayer.getInstance().startPlaying(hardwareMap.appContext, beauscreamSoundID);
+        // wait for touch sensor to be pushed
+        while (opModeIsActive()) {
 
-        // Define the flippin wheel power to what the flippin wheel power should be
-        double leftFrontPower = 0.3;
-        double rightFrontPower = 0.3;
-        double leftBackPower = 0.3;
-        double rightBackPower = 0.3;
-        // Step 1:  Drive forward for 3 seconds
-        leftFrontDrive.setPower(leftFrontPower);
-        rightFrontDrive.setPower(rightFrontPower);
-        leftBackDrive.setPower(leftBackPower);
-        rightBackDrive.setPower(rightBackPower);
-        runtime.reset();
-        while (opModeIsActive() && (runtime.seconds() < 2.5)) {
-            telemetry.addData("Path", "Leg 1: %4.1f S Elapsed", runtime.seconds());
+            // send the info back to driver station using telemetry function.
+            if (touchSensor.isPressed()) {
+                telemetry.addData("Touch Sensor", "Is Pressed");
+                hanger.setPower(hangerPower);
+                break;
+            } else {
+                telemetry.addData("Touch Sensor", "Is Not Pressed hello");
+                hanger.setPower(0);
+            }
+
             telemetry.update();
         }
-        leftFrontDrive.setPower(0.0);
-        rightFrontDrive.setPower(0.0);
-        leftBackDrive.setPower(0.0);
-        rightBackDrive.setPower(0.0);
-        while(opModeIsActive() && (runtime.seconds() < 3.5)) {
-            leftClaw.setPosition(0.4);
+
+        // start playing audio
+
+        // start moving the rocket actuator up at a slow speed
+        runtime.reset();
+        while (opModeIsActive() && (runtime.seconds() < 15)) {
+            hanger.setPower(.3);
+
+            if(10<runtime.seconds() && runtime.seconds() < 11){
+                airplane.setPosition(1);
+            }
+
         }
-        sleep(5000);
+        SoundPlayer.getInstance().startPlaying(hardwareMap.appContext, beauscreamSoundID);
+        hanger.setPower(0);
+        runtime.reset();
+        while (opModeIsActive() && (runtime.seconds() < 3)) {
+            mainArm.setPower(-.45);
+        }
+        SoundPlayer.getInstance().startPlaying(hardwareMap.appContext, beauscreamSoundID);
+        runtime.reset();
+        while (opModeIsActive() && (runtime.seconds() < 12)) {
+            mainArm.setPower(-.05);
+            otherArm.setPower(.25);
+
+        }
+        otherArm.setPower(0);
+
+
+        runtime.reset();
+        while (opModeIsActive() && (runtime.seconds() < 3)) {
+            mainArm.setPower(.125);
+        }
+        mainArm.setPower(0);
+
+        runtime.reset();
+        while (opModeIsActive() && (runtime.seconds() < 15)) {
+            hanger.setPower(-.3);
+        }
+        hanger.setPower(0);
+        // activate servo to move syringe for booster drop off
+
+        // move arm up to display planet
+
+        // rotate arm on arm to show the moon orbiting the planet
+
+
+        // Define the flippin wheel power to what the flippin wheel power should be
+
         /*
         // Step 2:  Spin right for 1.3 seconds
         leftDrive.setPower(TURN_SPEED);
@@ -140,7 +196,6 @@ public class RobotAutoDriveByTime_Linear extends LinearOpMode {
         leftDrive.setPower(0);
         rightDrive.setPower(0);
         */
-        telemetry.addData("Path", "Complete");
-        telemetry.update();
+
     }
 }
