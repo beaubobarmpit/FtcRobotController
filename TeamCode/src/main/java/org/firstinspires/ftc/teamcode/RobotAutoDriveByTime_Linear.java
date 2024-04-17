@@ -29,6 +29,10 @@
 
 package org.firstinspires.ftc.teamcode;
 
+import android.media.MediaPlayer;
+import android.os.Handler;
+import android.os.Looper;
+
 import com.qualcomm.ftccommon.SoundPlayer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
@@ -78,6 +82,30 @@ public class RobotAutoDriveByTime_Linear extends LinearOpMode {
     @Override
     public void runOpMode() {
         int beauscreamSoundID   = hardwareMap.appContext.getResources().getIdentifier("beauscream",   "raw", hardwareMap.appContext.getPackageName());
+        int narrator_1_1_17ID   = hardwareMap.appContext.getResources().getIdentifier("narrator1_1_17",   "raw", hardwareMap.appContext.getPackageName());
+        int narrator_1_2_17ID   = hardwareMap.appContext.getResources().getIdentifier("narrator1_2_17",   "raw", hardwareMap.appContext.getPackageName());
+        int narrator_1_3_17ID   = hardwareMap.appContext.getResources().getIdentifier("narrator1_3_17",   "raw", hardwareMap.appContext.getPackageName());
+        int narrator_1_4_17ID   = hardwareMap.appContext.getResources().getIdentifier("narrator1_4_17",   "raw", hardwareMap.appContext.getPackageName());
+        int narrator_2_1_8ID   = hardwareMap.appContext.getResources().getIdentifier("narrator2_1_8",   "raw", hardwareMap.appContext.getPackageName());
+        int narrator_2_2_8ID   = hardwareMap.appContext.getResources().getIdentifier("narrator2_2_8",   "raw", hardwareMap.appContext.getPackageName());
+        int narrator_3_1_3980ID   = hardwareMap.appContext.getResources().getIdentifier("narrator3_1_3980",   "raw", hardwareMap.appContext.getPackageName());
+        int narrator_3_2_5270ID   = hardwareMap.appContext.getResources().getIdentifier("narrator3_2_5270",   "raw", hardwareMap.appContext.getPackageName());
+        int narrator_4_1_3110ID   = hardwareMap.appContext.getResources().getIdentifier("narrator4_1_3110",   "raw", hardwareMap.appContext.getPackageName());
+        int narrator_4_2_5190ID   = hardwareMap.appContext.getResources().getIdentifier("narrator4_2_5190",   "raw", hardwareMap.appContext.getPackageName());
+        int narrator_4_3_4480ID   = hardwareMap.appContext.getResources().getIdentifier("narrator4_3_4480",   "raw", hardwareMap.appContext.getPackageName());
+        int narrator_5_1_4380ID   = hardwareMap.appContext.getResources().getIdentifier("narrator5_1_4380",   "raw", hardwareMap.appContext.getPackageName());
+        int narrator_5_2_3290ID   = hardwareMap.appContext.getResources().getIdentifier("narrator5_2_3290",   "raw", hardwareMap.appContext.getPackageName());
+        int narrator_5_3_3390ID   = hardwareMap.appContext.getResources().getIdentifier("narrator5_3_3390",   "raw", hardwareMap.appContext.getPackageName());
+        int narrator_6_1_4210ID   = hardwareMap.appContext.getResources().getIdentifier("narrator6_1_4210",   "raw", hardwareMap.appContext.getPackageName());
+        int narrator_6_2_5380ID   = hardwareMap.appContext.getResources().getIdentifier("narrator6_2_5380",   "raw", hardwareMap.appContext.getPackageName());
+        int narrator_6_3_5320ID   = hardwareMap.appContext.getResources().getIdentifier("narrator6_3_5320",   "raw", hardwareMap.appContext.getPackageName());
+        int narrator_7_1_4310ID   = hardwareMap.appContext.getResources().getIdentifier("narrator7_1_4310",   "raw", hardwareMap.appContext.getPackageName());
+        int narrator_7_2_5290ID   = hardwareMap.appContext.getResources().getIdentifier("narrator7_2_5290",   "raw", hardwareMap.appContext.getPackageName());
+        int sound1_6ID   = hardwareMap.appContext.getResources().getIdentifier("sound1_6",   "raw", hardwareMap.appContext.getPackageName());
+        int sound2_4ID   = hardwareMap.appContext.getResources().getIdentifier("sound2_4",   "raw", hardwareMap.appContext.getPackageName());
+        int sound3_5ID   = hardwareMap.appContext.getResources().getIdentifier("sound3_5",   "raw", hardwareMap.appContext.getPackageName());
+        int sound4_8ID   = hardwareMap.appContext.getResources().getIdentifier("sound4_8",   "raw", hardwareMap.appContext.getPackageName());
+
         telemetry.addData("beauscream resource",   beauscreamFound ?   "Found" : "NOT found\n Add beauscream.wav to /src/main/res/raw" );
 
         telemetry.addData("Playing", "Resource BeauScream");
@@ -106,62 +134,212 @@ public class RobotAutoDriveByTime_Linear extends LinearOpMode {
         telemetry.addData("Status", "Ready to run");    //
         telemetry.update();
 
+        int[] sounds = new int[] {
+                sound1_6ID,
+                narrator_1_1_17ID,
+                narrator_1_2_17ID,
+                narrator_1_3_17ID,
+                narrator_1_4_17ID,
+                narrator_2_1_8ID,
+                narrator_2_2_8ID,
+                sound2_4ID,
+                narrator_3_1_3980ID,
+                narrator_3_2_5270ID,
+                sound3_5ID,
+                narrator_4_1_3110ID,
+                narrator_4_2_5190ID,
+                narrator_4_3_4480ID,
+                narrator_5_1_4380ID,
+                narrator_5_2_3290ID,
+                narrator_5_3_3390ID,
+                narrator_6_1_4210ID,
+                narrator_6_2_5380ID,
+                narrator_6_3_5320ID,
+                narrator_7_1_4310ID,
+                narrator_7_2_5290ID,
+                sound4_8ID
+        };
+        boolean[] soundPlayed = new boolean[sounds.length];
+        int[] soundDurations = new int[] {
+                6000,
+          3800,
+          4000,
+          4000,
+          4000,
+                4000,
+                4000,
+                4000,
+                3980,
+                5270,
+                5000,
+                3110,
+                5190,
+                4480,
+                4380,
+                3290,
+                3390,
+                4210,
+                5380,
+                5320,
+                4310,
+                5290,
+                8000
+        };
+
+        //SoundSequence soundSequence = new SoundSequence(hardwareMap, sounds, sounds);
         // Wait for the game to start (driver presses PLAY)
         waitForStart();
-        SoundPlayer.getInstance().startPlaying(hardwareMap.appContext, beauscreamSoundID);
+
+        //soundSequence.playSounds(hardwareMap);
+        telemetry.update();
+        //SoundPlayer.getInstance().startPlaying(hardwareMap.appContext, narrator_1_17ID);
         // wait for touch sensor to be pushed
         while (opModeIsActive()) {
 
             // send the info back to driver station using telemetry function.
             if (touchSensor.isPressed()) {
-                telemetry.addData("Touch Sensor", "Is Pressed");
-                hanger.setPower(hangerPower);
+                //telemetry.addData("Touch Sensor", "Is Pressed");
+
                 break;
             } else {
-                telemetry.addData("Touch Sensor", "Is Not Pressed hello");
+                //telemetry.addData("Touch Sensor", "Is Not Pressed hello");
                 hanger.setPower(0);
             }
 
-            telemetry.update();
+            //telemetry.update();
         }
+        runtime.reset();
 
         // start playing audio
+        SoundPlayer.getInstance().startPlaying(hardwareMap.appContext, sound1_6ID);
+
+        while (opModeIsActive() && (runtime.seconds() < 45)) {
+            if(runtime.milliseconds() > getPreviousDurations(1, soundDurations) && !soundPlayed[1]) {
+                soundPlayed[1] = true;
+                SoundPlayer.getInstance().startPlaying(hardwareMap.appContext, narrator_1_1_17ID);
+            }
+            if(runtime.milliseconds() > getPreviousDurations(2, soundDurations) && !soundPlayed[2]) {
+                soundPlayed[2] = true;
+                SoundPlayer.getInstance().startPlaying(hardwareMap.appContext, narrator_1_2_17ID);
+            }
+            if(runtime.milliseconds() > getPreviousDurations(3, soundDurations) && !soundPlayed[3]) {
+                soundPlayed[3] = true;
+                SoundPlayer.getInstance().startPlaying(hardwareMap.appContext, narrator_1_3_17ID);
+            }
+            if(runtime.milliseconds() > getPreviousDurations(4, soundDurations) && !soundPlayed[4]) {
+                soundPlayed[4] = true;
+                SoundPlayer.getInstance().startPlaying(hardwareMap.appContext, narrator_1_4_17ID);
+            }
+            if(runtime.milliseconds() > getPreviousDurations(5, soundDurations) && !soundPlayed[5]) {
+                soundPlayed[5] = true;
+                SoundPlayer.getInstance().startPlaying(hardwareMap.appContext, narrator_2_1_8ID);
+            }
+            if(runtime.milliseconds() > getPreviousDurations(6, soundDurations) && !soundPlayed[6]) {
+                soundPlayed[6] = true;
+                SoundPlayer.getInstance().startPlaying(hardwareMap.appContext, narrator_2_2_8ID);
+            }
+            if(runtime.milliseconds() > getPreviousDurations(7, soundDurations) && !soundPlayed[7]) {
+                soundPlayed[7] = true;
+                SoundPlayer.getInstance().startPlaying(hardwareMap.appContext, sound2_4ID);
+            }
+            if(runtime.milliseconds() > getPreviousDurations(8, soundDurations) && !soundPlayed[8]) {
+                soundPlayed[8] = true;
+                SoundPlayer.getInstance().startPlaying(hardwareMap.appContext, narrator_3_1_3980ID);
+            }
+            if(runtime.milliseconds() > getPreviousDurations(9, soundDurations) && !soundPlayed[9]) {
+                soundPlayed[9] = true;
+                SoundPlayer.getInstance().startPlaying(hardwareMap.appContext, narrator_3_2_5270ID);
+            }
+            if(runtime.milliseconds() > getPreviousDurations(10, soundDurations) && !soundPlayed[10]) {
+                soundPlayed[10] = true;
+                SoundPlayer.getInstance().startPlaying(hardwareMap.appContext, sound3_5ID);
+            }
+            //play through sound 3 or index 10
+        }
+
 
         // start moving the rocket actuator up at a slow speed
-        runtime.reset();
-        while (opModeIsActive() && (runtime.seconds() < 15)) {
-            hanger.setPower(.3);
+        while (opModeIsActive() && (runtime.seconds() < 75)) {
 
-            if(10<runtime.seconds() && runtime.seconds() < 11){
+
+            // play narrator 4 and 5
+            if(runtime.milliseconds() > getPreviousDurations(11, soundDurations) && !soundPlayed[11]) {
+                soundPlayed[11] = true;
+                SoundPlayer.getInstance().startPlaying(hardwareMap.appContext, narrator_4_1_3110ID);
+                hanger.setPower(.3);
+            }
+            if(runtime.milliseconds() > getPreviousDurations(12, soundDurations) && !soundPlayed[12]) {
+                soundPlayed[12] = true;
+                SoundPlayer.getInstance().startPlaying(hardwareMap.appContext, narrator_4_2_5190ID);
+            }
+            if(runtime.milliseconds() > getPreviousDurations(13, soundDurations) && !soundPlayed[13]) {
+                soundPlayed[13] = true;
+                SoundPlayer.getInstance().startPlaying(hardwareMap.appContext, narrator_4_3_4480ID);
+            }
+            if(runtime.milliseconds() > getPreviousDurations(14, soundDurations) && !soundPlayed[14]) {
+                soundPlayed[14] = true;
+                SoundPlayer.getInstance().startPlaying(hardwareMap.appContext, narrator_5_1_4380ID);
+            }
+            if(runtime.milliseconds() > getPreviousDurations(15, soundDurations) && !soundPlayed[15]) {
+                soundPlayed[15] = true;
+                SoundPlayer.getInstance().startPlaying(hardwareMap.appContext, narrator_5_2_3290ID);
+            }
+            if(runtime.milliseconds() > getPreviousDurations(16, soundDurations) && !soundPlayed[16]) {
+                soundPlayed[16] = true;
+                SoundPlayer.getInstance().startPlaying(hardwareMap.appContext, narrator_5_3_3390ID);
+            }
+            if(runtime.seconds() > 60){
                 airplane.setPosition(1);
             }
 
         }
-        SoundPlayer.getInstance().startPlaying(hardwareMap.appContext, beauscreamSoundID);
+        //SoundPlayer.getInstance().startPlaying(hardwareMap.appContext, beauscreamSoundID);
         hanger.setPower(0);
-        runtime.reset();
-        while (opModeIsActive() && (runtime.seconds() < 3)) {
+        while (opModeIsActive() && (runtime.seconds() < 78)) {
             mainArm.setPower(-.45);
         }
-        SoundPlayer.getInstance().startPlaying(hardwareMap.appContext, beauscreamSoundID);
-        runtime.reset();
-        while (opModeIsActive() && (runtime.seconds() < 12)) {
-            mainArm.setPower(-.05);
-            otherArm.setPower(.25);
+        //SoundPlayer.getInstance().startPlaying(hardwareMap.appContext, beauscreamSoundID);
 
+        while (opModeIsActive() && (runtime.seconds() < 95)) {
+            mainArm.setPower(-.05);
+            otherArm.setPower(.15);
+
+            if(runtime.milliseconds() > getPreviousDurations(17, soundDurations) && !soundPlayed[17]) {
+                soundPlayed[17] = true;
+                SoundPlayer.getInstance().startPlaying(hardwareMap.appContext, narrator_6_1_4210ID);
+            }
+            if(runtime.milliseconds() > getPreviousDurations(18, soundDurations) && !soundPlayed[18]) {
+                soundPlayed[18] = true;
+                SoundPlayer.getInstance().startPlaying(hardwareMap.appContext, narrator_6_2_5380ID);
+            }
+            if(runtime.milliseconds() > getPreviousDurations(19, soundDurations) && !soundPlayed[19]) {
+                soundPlayed[19] = true;
+                SoundPlayer.getInstance().startPlaying(hardwareMap.appContext, narrator_6_3_5320ID);
+            }
         }
         otherArm.setPower(0);
 
 
-        runtime.reset();
-        while (opModeIsActive() && (runtime.seconds() < 3)) {
-            mainArm.setPower(.125);
+        while (opModeIsActive() && (runtime.seconds() < 98)) {
+            mainArm.setPower(.1);
         }
         mainArm.setPower(0);
 
-        runtime.reset();
-        while (opModeIsActive() && (runtime.seconds() < 15)) {
+        while (opModeIsActive() && (runtime.seconds() < 118)) {
             hanger.setPower(-.3);
+
+            if(runtime.milliseconds() > getPreviousDurations(20, soundDurations) && !soundPlayed[20]) {
+                soundPlayed[20] = true;
+                SoundPlayer.getInstance().startPlaying(hardwareMap.appContext, narrator_7_1_4310ID);
+            }
+            if(runtime.milliseconds() > getPreviousDurations(21, soundDurations) && !soundPlayed[21]) {
+                soundPlayed[21] = true;
+                SoundPlayer.getInstance().startPlaying(hardwareMap.appContext, narrator_7_2_5290ID);
+            }
+            if(runtime.milliseconds() > getPreviousDurations(22, soundDurations) && !soundPlayed[22]) {
+                soundPlayed[22] = true;
+                SoundPlayer.getInstance().startPlaying(hardwareMap.appContext, sound4_8ID);
+            }
         }
         hanger.setPower(0);
         // activate servo to move syringe for booster drop off
@@ -197,5 +375,13 @@ public class RobotAutoDriveByTime_Linear extends LinearOpMode {
         rightDrive.setPower(0);
         */
 
+    }
+
+    private double getPreviousDurations(int soundToBePlayedIndex, int[] durations) {
+        double duration = 0;
+        for(int i = 0;i<soundToBePlayedIndex;i++) {
+            duration+= durations[i];
+        }
+        return duration;
     }
 }
